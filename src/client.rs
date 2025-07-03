@@ -92,16 +92,16 @@ impl<S: MDCStream> MDCSession<S> {
 /// A high level controller that can send screen commands and receive screen informations
 pub trait DisplayControl {
     /// Set light panel on
-    fn set_panel_on(&mut self) -> Result<&mut Self, crate::Error>;
+    fn set_panel_on(&mut self) -> Result<(), crate::Error>;
 
     /// Set light panel off and blank screen
-    fn set_panel_off(&mut self) -> Result<&mut Self, crate::Error>;
+    fn set_panel_off(&mut self) -> Result<(), crate::Error>;
 
     /// Set screen power on
-    fn set_power_on(&mut self) -> Result<&mut Self, crate::Error>;
+    fn set_power_on(&mut self) -> Result<(), crate::Error>;
 
     /// Set screen power off
-    fn set_power_off(&mut self) -> Result<&mut Self, crate::Error>;
+    fn set_power_off(&mut self) -> Result<(), crate::Error>;
 }
 
 /// Send and receive commands for a specific display ID
@@ -111,24 +111,24 @@ pub struct DisplayCommandBuilder<'a, S: MDCStream> {
 }
 
 impl<S: MDCStream> DisplayControl for DisplayCommandBuilder<'_, S> {
-    fn set_panel_off(&mut self) -> Result<&mut Self, crate::Error> {
+    fn set_panel_off(&mut self) -> Result<(), crate::Error> {
         self.session.send_packet_ack(Packet::new(commands::PANEL_ON_OFF, self.display_id, vec![1]))?;
-        Ok(self)
+        Ok(())
     }
 
-    fn set_panel_on(&mut self) -> Result<&mut Self, crate::Error> {
+    fn set_panel_on(&mut self) -> Result<(), crate::Error> {
         self.session.send_packet_ack(Packet::new(commands::PANEL_ON_OFF, self.display_id, vec![0]))?;
-        Ok(self)
+        Ok(())
     }
 
-    fn set_power_off(&mut self) -> Result<&mut Self, crate::Error> {
+    fn set_power_off(&mut self) -> Result<(), crate::Error> {
         self.session.send_packet_ack(Packet::new(commands::POWER_CONTROL, self.display_id, vec![0]))?;
-        Ok(self)
+        Ok(())
     }
 
-    fn set_power_on(&mut self) -> Result<&mut Self, crate::Error> {
+    fn set_power_on(&mut self) -> Result<(), crate::Error> {
         self.session.send_packet_ack(Packet::new(commands::POWER_CONTROL, self.display_id, vec![1]))?;
-        Ok(self)
+        Ok(())
     }
 }
 
@@ -138,23 +138,23 @@ pub struct BroadcastCommandBuilder<'a, S: MDCStream> {
 }
 
 impl<S: MDCStream> DisplayControl for BroadcastCommandBuilder<'_, S> {
-    fn set_panel_off(&mut self) -> Result<&mut Self, crate::Error> {
+    fn set_panel_off(&mut self) -> Result<(), crate::Error> {
         self.session.send_packet(Packet::new(commands::PANEL_ON_OFF, DISPLAY_BROADCAST, vec![1]))?;
-        Ok(self)
+        Ok(())
     }
 
-    fn set_panel_on(&mut self) -> Result<&mut Self, crate::Error> {
+    fn set_panel_on(&mut self) -> Result<(), crate::Error> {
         self.session.send_packet(Packet::new(commands::PANEL_ON_OFF, DISPLAY_BROADCAST, vec![0]))?;
-        Ok(self)
+        Ok(())
     }
 
-    fn set_power_off(&mut self) -> Result<&mut Self, crate::Error> {
+    fn set_power_off(&mut self) -> Result<(), crate::Error> {
         self.session.send_packet(Packet::new(commands::POWER_CONTROL, DISPLAY_BROADCAST, vec![0]))?;
-        Ok(self)
+        Ok(())
     }
 
-    fn set_power_on(&mut self) -> Result<&mut Self, crate::Error> {
+    fn set_power_on(&mut self) -> Result<(), crate::Error> {
         self.session.send_packet(Packet::new(commands::POWER_CONTROL, DISPLAY_BROADCAST, vec![1]))?;
-        Ok(self)
+        Ok(())
     }
 }
