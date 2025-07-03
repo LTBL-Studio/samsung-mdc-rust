@@ -3,6 +3,7 @@
 
 use std::io;
 
+use client::InvalidValueError;
 use proto::Packet;
 use thiserror::Error;
 
@@ -31,5 +32,8 @@ pub enum Error {
     UnexpectedResponse(Packet),
     /// Server responded with NACK
     #[error("Server responded with NACK")]
-    Nack(Packet)
+    Nack(Packet),
+    /// Server responded with invalid value
+    #[error("Server responded with invalid value: {0}")]
+    InvalidValue(#[from] InvalidValueError)
 }

@@ -6,8 +6,8 @@ This crate provides basic communication to Samsung screens supporting MDC protoc
 
 ## Features
 
-* Set panel on and off
-* Set power on and off
+* Get and set panel on and off
+* Get and set power on and off
 
 ## Quick start
 

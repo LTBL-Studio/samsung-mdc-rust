@@ -1,6 +1,6 @@
 //! Communicate with MDC screen
 
-use std::{io::{Read, Write}, net::{SocketAddr, TcpStream}};
+use std::{error::Error, fmt::Display, io::{Read, Write}, net::{SocketAddr, TcpStream}};
 
 use crate::{commands, proto::{self, Packet}, DISPLAY_BROADCAST};
 
@@ -89,6 +89,66 @@ impl<S: MDCStream> MDCSession<S> {
     }
 }
 
+/// Represents a power status of a display
+pub enum PowerStatus {
+    /// Display is powered on
+    On,
+    /// Display is powered off
+    Off
+}
+
+impl PowerStatus {
+    /// Check if current status is [PowerStatus::On]
+    pub fn is_on(&self) -> bool {
+        matches!(self, PowerStatus::On)
+    }
+
+    /// Parse bytes returned by ACK packet into this structure
+    pub fn from_bytes(byte: u8) -> Result<Self, InvalidValueError> {
+        match byte {
+            0x00 => Ok(Self::On),
+            0x01 => Ok(Self::Off),
+            _ => Err(InvalidValueError)
+        }
+    }
+}
+
+/// Represents power status of display panel
+pub enum PanelStatus {
+    /// Panel is turned on
+    On,
+    /// Panel is turned off
+    Off
+}
+
+impl PanelStatus {
+    /// Checks if panel is on
+    pub fn is_on(&self) -> bool {
+        matches!(self, PanelStatus::On)
+    }
+
+    /// Parse byte from ACK package into this structure
+    pub fn from_bytes(byte: u8) -> Result<Self, InvalidValueError> {
+        match byte {
+            0x00 => Ok(Self::Off),
+            0x01 => Ok(Self::On),
+            _ => Err(InvalidValueError)
+        }
+    }
+}
+
+/// Error produced by [PanelStatus] or [PowerStatus] when an invalid value was received
+#[derive(Debug)]
+pub struct InvalidValueError;
+
+impl Display for InvalidValueError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Invalid value received")
+    }
+}
+
+impl Error for InvalidValueError {}
+
 /// A high level controller that can send screen commands and receive screen informations
 pub trait DisplayControl {
     /// Set light panel on
@@ -129,6 +189,26 @@ impl<S: MDCStream> DisplayControl for DisplayCommandBuilder<'_, S> {
     fn set_power_on(&mut self) -> Result<(), crate::Error> {
         self.session.send_packet_ack(Packet::new(commands::POWER_CONTROL, self.display_id, vec![1]))?;
         Ok(())
+    }
+}
+
+impl<S: MDCStream> DisplayCommandBuilder<'_, S> {
+    /// Get screen power status
+    pub fn get_panel_status(&mut self) -> Result<PanelStatus, crate::Error> {
+        let response = self.session.send_packet_ack(Packet::new(commands::PANEL_ON_OFF, self.display_id, Vec::new()))?;
+        let Some(value) = response.data.get(2) else {
+            return Err(crate::Error::InvalidPacket(proto::Error::IncompleteInput))
+        };
+        Ok(PanelStatus::from_bytes(*value)?)
+    }
+
+    /// Get screen power status
+    pub fn get_power_status(&mut self) -> Result<PowerStatus, crate::Error> {
+        let response = self.session.send_packet_ack(Packet::new(commands::POWER_CONTROL, self.display_id, Vec::new()))?;
+        let Some(value) = response.data.get(2) else {
+            return Err(crate::Error::InvalidPacket(proto::Error::IncompleteInput))
+        };
+        Ok(PowerStatus::from_bytes(*value)?)
     }
 }
 
