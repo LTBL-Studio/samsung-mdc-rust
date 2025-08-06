@@ -205,7 +205,6 @@ impl<S: MDCStream> DisplayCommandBuilder<'_, S> {
         let Some(value) = response.data.get(2) else {
             return Err(crate::Error::InvalidPacket(proto::Error::IncompleteInput))
         };
-        println!("Panel: {:?}", response);
         Ok(PanelStatus::from_bytes(*value)?)
     }
 
@@ -215,7 +214,6 @@ impl<S: MDCStream> DisplayCommandBuilder<'_, S> {
         let Some(value) = response.data.get(2) else {
             return Err(crate::Error::InvalidPacket(proto::Error::IncompleteInput))
         };
-        println!("Power: {:?}", response);
         Ok(PowerStatus::from_bytes(*value)?)
     }
 }
