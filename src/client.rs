@@ -1,6 +1,6 @@
 //! Communicate with MDC screen
 
-use std::{error::Error, fmt::Display, io::{Read, Write}, net::{SocketAddr, TcpStream}};
+use std::{error::Error, fmt::{Debug, Display}, io::{Read, Write}, net::{SocketAddr, TcpStream}};
 
 use crate::{commands, proto::{self, Packet}, DISPLAY_BROADCAST};
 
@@ -21,6 +21,12 @@ impl MDCSession<TcpStream> {
     pub fn new_from_tcp(addr: SocketAddr) -> Result<Self, crate::Error> {
         let connection = TcpStream::connect(addr)?;
         Self::new_from_stream(connection)
+    }
+}
+
+impl<S: MDCStream> Debug for MDCSession<S> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MDCSession").finish()
     }
 }
 
