@@ -112,8 +112,8 @@ impl PowerStatus {
     /// Parse bytes returned by ACK packet into this structure
     pub fn from_bytes(byte: u8) -> Result<Self, InvalidValueError> {
         match byte {
-            0x00 => Ok(Self::On),
-            0x01 => Ok(Self::Off),
+            0x00 => Ok(Self::Off),
+            0x01 => Ok(Self::On),
             _ => Err(InvalidValueError)
         }
     }
@@ -136,8 +136,8 @@ impl PanelStatus {
     /// Parse byte from ACK package into this structure
     pub fn from_bytes(byte: u8) -> Result<Self, InvalidValueError> {
         match byte {
-            0x00 => Ok(Self::Off),
-            0x01 => Ok(Self::On),
+            0x00 => Ok(Self::On),
+            0x01 => Ok(Self::Off),
             _ => Err(InvalidValueError)
         }
     }
@@ -205,6 +205,7 @@ impl<S: MDCStream> DisplayCommandBuilder<'_, S> {
         let Some(value) = response.data.get(2) else {
             return Err(crate::Error::InvalidPacket(proto::Error::IncompleteInput))
         };
+        println!("Panel: {:?}", response);
         Ok(PanelStatus::from_bytes(*value)?)
     }
 
@@ -214,6 +215,7 @@ impl<S: MDCStream> DisplayCommandBuilder<'_, S> {
         let Some(value) = response.data.get(2) else {
             return Err(crate::Error::InvalidPacket(proto::Error::IncompleteInput))
         };
+        println!("Power: {:?}", response);
         Ok(PowerStatus::from_bytes(*value)?)
     }
 }
